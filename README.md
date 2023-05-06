@@ -1,5 +1,8 @@
 # Fast-Planner
 
+> 对Fast Planner中的部分代码参考网络上的资料进行了注释。  
+> 代码最后注释时间：2023年5月6日。
+
 **Fast-Planner** is developed aiming to enable quadrotor fast flight in complex unknown environments. It contains a rich set of carefully designed planning algorithms. 
 
 **News**: 
