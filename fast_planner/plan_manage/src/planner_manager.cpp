@@ -148,6 +148,7 @@ bool FastPlannerManager::kinodynamicReplan(Eigen::Vector3d start_pt, Eigen::Vect
   Eigen::Vector3d init_acc = start_acc;
 
   // kinodynamic path searching
+  //第一步，进行前端规划，通过调用kinodynamic_astar下的search函数进行计算。
 
   t1 = ros::Time::now();
 
@@ -178,6 +179,8 @@ bool FastPlannerManager::kinodynamicReplan(Eigen::Vector3d start_pt, Eigen::Vect
   t_search = (ros::Time::now() - t1).toSec();
 
   // parameterize the path to bspline
+  //第二步，计算出来的离散点还不是直接用，而是通过NonUniformBspline::parameterizeToBspline
+  //函数进行拟合。原因是后面我们将会使用b-spline进行轨迹规划，需要一个初始值，所以这里的拟合就是为了获得初始的b-spline的控制点。
 
   double                  ts = pp_.ctrl_pt_dist / pp_.max_vel_;
   vector<Eigen::Vector3d> point_set, start_end_derivatives;
@@ -191,6 +194,12 @@ bool FastPlannerManager::kinodynamicReplan(Eigen::Vector3d start_pt, Eigen::Vect
 
   t1 = ros::Time::now();
 
+  // 这里采用了normal phase：
+  // const int BsplineOptimizer::NORMAL_PHASE = BsplineOptimizer::SMOOTHNESS |
+  //                                            BsplineOptimizer::DISTANCE |
+  //                                            BsplineOptimizer::FEASIBILITY;
+  //所以这里只需要考虑三个cost。
+
   int cost_function = BsplineOptimizer::NORMAL_PHASE;
 
   if (status != KinodynamicAstar::REACH_END) {
@@ -202,14 +211,18 @@ bool FastPlannerManager::kinodynamicReplan(Eigen::Vector3d start_pt, Eigen::Vect
   t_opt = (ros::Time::now() - t1).toSec();
 
   // iterative time adjustment
+  //第四步，迭代优化时间分配
 
   t1                    = ros::Time::now();
   NonUniformBspline pos = NonUniformBspline(ctrl_pts, 3, ts);
 
   double to = pos.getTimeSum();
   pos.setPhysicalLimits(pp_.max_vel_, pp_.max_acc_);
+  
+  //看看曲线是否可行
   bool feasible = pos.checkFeasibility(false);
 
+  //如果不可行，就要重新分配时间
   int iter_num = 0;
   while (!feasible && ros::ok()) {
 
