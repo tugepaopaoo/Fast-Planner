@@ -181,21 +181,21 @@ void KinoReplanFSM::execFSMCallback(const ros::TimerEvent& e) {
       Eigen::Vector3d pos = info->position_traj_.evaluateDeBoorT(t_cur);
 
       /* && (end_pt_ - pos).norm() < 0.5 */
-      if (t_cur > info->duration_ - 1e-2) {
+      if (t_cur > info->duration_ - 1e-2) {      // 若当前时间超过轨迹时长，不需要重规划
         have_target_ = false;
         changeFSMExecState(WAIT_TARGET, "FSM");
         return;
 
-      } else if ((end_pt_ - pos).norm() < no_replan_thresh_) {
+      } else if ((end_pt_ - pos).norm() < no_replan_thresh_) {   // 若当前位置距离目标点距离小于阈值，不需要重规划，避免重规划过于频繁
         // cout << "near end" << endl;
         return;
 
-      } else if ((info->start_pos_ - pos).norm() < replan_thresh_) {
+      } else if ((info->start_pos_ - pos).norm() < replan_thresh_) {  // 若当前位置距离起始点距离小于阈值，不需要重规划,避免重规划过于频繁
         // cout << "near start" << endl;
         return;
 
       } else {
-        changeFSMExecState(REPLAN_TRAJ, "FSM");
+        changeFSMExecState(REPLAN_TRAJ, "FSM");  // 除上述情况外，需要重规划
       }
       break;
     }
