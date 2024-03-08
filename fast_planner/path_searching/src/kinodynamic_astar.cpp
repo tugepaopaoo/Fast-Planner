@@ -91,7 +91,7 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
     cur_node = open_set_.top();
 
     // Terminate?
-    // reach_horizon表示当前节点与起点的距离
+    // reach_horizon判断是否到达局部设定的局部规划范围，near_end判断是否到达终点附近
     bool reach_horizon = (cur_node->state.head(3) - start_pt).norm() >= horizon_; //horizon_由launch文件中设定
 
     /* ---------------determine termination--------------- */
@@ -129,12 +129,12 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
 
     if (near_end)
     {
-      if (is_shot_succ_)                  //说明终点附近有障碍物
+      if (is_shot_succ_)                  //若在终点附近找到了一段轨迹
       {
         std::cout << "reach end" << std::endl;
         return REACH_END;
       }
-      else if (cur_node->parent != NULL)  //说明目标点在起点附近，不需要搜索
+      else if (cur_node->parent != NULL)  //若在终点附近未找到轨迹，且当前节点有父节点
       {
         std::cout << "near end" << std::endl;
         return NEAR_END;
