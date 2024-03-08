@@ -638,7 +638,7 @@ void KinodynamicAstar::reset()
   has_path_ = false;
 }
 
-// 输入预设时间分辨率，获取对应的一段动力学轨迹state_list
+// 输入预设时间分辨率，获取对应的一段动力学轨迹state_list，仅用于可视化
 std::vector<Eigen::Vector3d> KinodynamicAstar::getKinoTraj(double delta_t)
 {
   vector<Vector3d> state_list;    //记录轨迹在采样点的pos
@@ -685,6 +685,7 @@ std::vector<Eigen::Vector3d> KinodynamicAstar::getKinoTraj(double delta_t)
 }
 
 // KinodynamicAstar采样，离散获得一些轨迹点及起始点速度和加速度，得到节点point_set，即open_list
+// 获得的轨迹点用于B样条的拟合，以及后续的轨迹优化
 void KinodynamicAstar::getSamples(double& ts, vector<Eigen::Vector3d>& point_set,
                                   vector<Eigen::Vector3d>& start_end_derivatives)
 {
